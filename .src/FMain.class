@@ -8,6 +8,7 @@ Public Sub tb_expr_append(s As String)
   p = tb_expr.Pos
   tb_expr.Text = Mid(tb_expr.Text, 1, tb_expr.Pos) & s & Mid(tb_expr.Text, tb_expr.Pos + 1, Len(tb_expr.Text) - tb_expr.Pos)
   tb_expr.Pos = p + 1
+  tb_expr.SetFocus
 End
 
 
@@ -105,6 +106,7 @@ Public Sub b_calc_Click()
     make_ctrl_error(tb_RPN)
     make_ctrl_alert(tb_result)
   Endif
+  tb_expr.SetFocus
 End
 
 Sub make_ctrl_error(ctrl As Control)

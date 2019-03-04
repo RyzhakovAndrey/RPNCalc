@@ -249,9 +249,10 @@ End
 Public Function Calc(expression As String) As Boolean 
   Dim i As Integer, expr_len As Integer
   Dim operands As New String[], buffer As String
-  Dim operand_1 As Variant, operand_2 As Variant
+  Dim operand_1 As Variant, operand_2 As Variant, count_operators As Short
 
   _calc_result = 0
+  count_operators = 0
   'parts = Split(expression, OPS_SEPARATOR)
   expr_len = Len(expression)
   i = 1
@@ -270,6 +271,7 @@ Public Function Calc(expression As String) As Boolean
 
       
       If IsOperator(expression, i) Then
+        count_operators = count_operators + 1
 
         'checking that the number of operators matches the number of operands
         If operands.Length < 2 Then
@@ -310,6 +312,15 @@ Public Function Calc(expression As String) As Boolean
 
 
   Wend
+  
+  If count_operators < 1 Then
+    _calc_error = "operators not found"
+    Return False
+  Else If operands.Length < 1 And operands.Length > 1 Then
+    _calc_error = "number of operators is not matches the number of operands"
+    Return False
+  Endif
+  
   _calc_result = operands.Pop()
   Return True
 End
