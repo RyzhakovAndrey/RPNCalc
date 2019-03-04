@@ -1,0 +1,316 @@
+' Gambas class file
+
+
+'What To Do (WTD) constants on intersection col
+Private Const WTD_CURRENT_TO_STACK As Byte = 1
+Private Const WTD_PREVIOUS_TO_RESULT As Byte = 2
+Private Const WTD_CURRENT_AND_PREVIOUS_REMOVE As Byte = 3
+Private Const WTD_COMPILE_COMPLETE As Byte = 4
+Private Const WTD_COMPILE_ERROR As Byte = 5
+
+'OPerator Symbol (OPS)
+Public Const OPS_SEPARATOR As String = " "
+Public Const OPS_DECIMAL_SEPARATOR As String = "."
+
+Public Const OPS_EXPR_BOUND As String = "'"
+Public Const OPS_PLUS As String = "+"
+Public Const OPS_MINUS As String = "-"
+Public Const OPS_MULT As String = "*"
+Public Const OPS_DIV As String = "/"
+Public Const OPS_BR_OPEN As String = "("
+Public Const OPS_BR_CLOSE As String = ")"
+
+
+'collection of operators
+Private op As New Collection
+
+'special operator for separating numbers
+Private op_separator As New Operator(OPS_SEPARATOR)
+
+'common variable for store result of method IsOperator and common use for other methods
+Private op_current As Operator
+
+'keep RPN after make
+Private _str As String
+'keep error description if RPN compile error
+Private _str_error As String
+
+Private _calc_result As Float
+Private _calc_error As String
+
+'Stack of operators (for make & calc methods)
+Private _op_stack As New Operator[]
+
+
+
+Property Read str As String
+Property Read str_error As String
+Property Read calc_result As Float
+Property Read calc_error As String
+Property Read operators As Collection
+
+Function str_Read() As String
+  Return _str
+End
+
+Function str_error_Read() As String
+  Return _str_error
+End
+
+Function calc_result_Read() As Float
+  Return _calc_result
+End
+
+Function operators_Read() As Collection
+  Return op
+End
+
+Function calc_error_Read() As String
+  Return _calc_error
+End
+
+
+
+Public Sub _new()
+
+  'filling matrix of states
+  op[OPS_EXPR_BOUND] = New Operator(OPS_EXPR_BOUND)
+  With op[OPS_EXPR_BOUND]
+    .intersect[OPS_EXPR_BOUND] = WTD_COMPILE_COMPLETE
+    .intersect[OPS_PLUS] = WTD_PREVIOUS_TO_RESULT
+    .intersect[OPS_MINUS] = WTD_PREVIOUS_TO_RESULT
+    .intersect[OPS_MULT] = WTD_PREVIOUS_TO_RESULT
+    .intersect[OPS_DIV] = WTD_PREVIOUS_TO_RESULT
+    .intersect[OPS_BR_OPEN] = WTD_COMPILE_ERROR
+  End With
+
+  'filling matrix of states
+  op[OPS_PLUS] = New Operator(OPS_PLUS)
+  With op[OPS_PLUS]
+    .intersect[OPS_EXPR_BOUND] = WTD_CURRENT_TO_STACK
+    .intersect[OPS_PLUS] = WTD_PREVIOUS_TO_RESULT
+    .intersect[OPS_MINUS] = WTD_PREVIOUS_TO_RESULT
+    .intersect[OPS_MULT] = WTD_PREVIOUS_TO_RESULT
+    .intersect[OPS_DIV] = WTD_PREVIOUS_TO_RESULT
+    .intersect[OPS_BR_OPEN] = WTD_CURRENT_TO_STACK
+  End With
+  
+  'filling matrix of states
+  op[OPS_MINUS] = New Operator(OPS_MINUS)
+  op[OPS_MINUS].intersect = op[OPS_PLUS].intersect
+
+
+  'filling matrix of states
+  op[OPS_MULT] = New Operator(OPS_MULT)
+  With op[OPS_MULT]
+    .intersect[OPS_EXPR_BOUND] = WTD_CURRENT_TO_STACK
+    .intersect[OPS_PLUS] = WTD_CURRENT_TO_STACK
+    .intersect[OPS_MINUS] = WTD_CURRENT_TO_STACK
+    .intersect[OPS_MULT] = WTD_PREVIOUS_TO_RESULT
+    .intersect[OPS_DIV] = WTD_PREVIOUS_TO_RESULT
+    .intersect[OPS_BR_OPEN] = WTD_CURRENT_TO_STACK
+  End With
+
+  'filling matrix of states
+  op[OPS_DIV] = New Operator(OPS_DIV)
+  op[OPS_DIV].intersect = op[OPS_MULT].intersect
+
+  'filling matrix of states
+  op[OPS_BR_OPEN] = New Operator(OPS_BR_OPEN)
+  With op[OPS_BR_OPEN]
+    .intersect[OPS_EXPR_BOUND] = WTD_CURRENT_TO_STACK
+    .intersect[OPS_PLUS] = WTD_CURRENT_TO_STACK
+    .intersect[OPS_MINUS] = WTD_CURRENT_TO_STACK
+    .intersect[OPS_MULT] = WTD_CURRENT_TO_STACK
+    .intersect[OPS_DIV] = WTD_CURRENT_TO_STACK
+    .intersect[OPS_BR_OPEN] = WTD_CURRENT_TO_STACK
+  End With
+
+  'filling matrix of states
+  op[OPS_BR_CLOSE] = New Operator(OPS_BR_CLOSE)
+  With op[OPS_BR_CLOSE]
+    .intersect[OPS_EXPR_BOUND] = WTD_COMPILE_ERROR
+    .intersect[OPS_PLUS] = WTD_PREVIOUS_TO_RESULT
+    .intersect[OPS_MINUS] = WTD_PREVIOUS_TO_RESULT
+    .intersect[OPS_MULT] = WTD_PREVIOUS_TO_RESULT
+    .intersect[OPS_DIV] = WTD_PREVIOUS_TO_RESULT
+    .intersect[OPS_BR_OPEN] = WTD_CURRENT_AND_PREVIOUS_REMOVE
+  End With
+
+End
+
+
+Public Function Make(expression As String) As String
+  'Alghoritm by Edsger Wybe Dijkstra 
+  
+  Dim i As Integer, expr_len As Integer
+  Dim last_symbol As String, current_symbol As String, is_last_symbol_op As Boolean
+
+  expression = OPS_EXPR_BOUND & expression & OPS_EXPR_BOUND
+  _str = ""
+  op_current = Null
+  _op_stack.Clear
+  _op_stack.Push(op[OPS_EXPR_BOUND])
+
+
+  expr_len = Len(expression)
+  i = op[OPS_EXPR_BOUND].len + 1
+  While i <= expr_len
+  
+    If IsOperator(expression, i) Then  'detect what to do by states from matrix
+
+      Select op[op_current.symbol].intersect[_op_stack.Last.symbol]
+
+        Case WTD_CURRENT_TO_STACK
+            _op_stack.Push(op_current)
+            i = i + op_current.len
+            is_last_symbol_op = True
+          Continue
+        
+        
+        Case WTD_PREVIOUS_TO_RESULT 
+          If last_symbol <> OPS_SEPARATOR Then
+             _str = _str & OPS_SEPARATOR
+          Endif
+          last_symbol = _op_stack.pop().symbol
+          is_last_symbol_op = True
+          _str = _str & last_symbol
+          Continue
+        
+
+        Case WTD_CURRENT_AND_PREVIOUS_REMOVE
+          _op_stack.pop()
+          is_last_symbol_op = True
+          i = i + op_current.len
+          Continue
+        
+                
+        Case WTD_COMPILE_COMPLETE
+          _str = Trim(_str)
+          Return True
+        
+        
+        
+        Case WTD_COMPILE_ERROR
+          _str_error = "Expression compile error!"
+          Return False
+      
+     
+      End Select
+      
+      _str_error = "intersection matrix is broken!"
+      Return False 'if matrix is broken
+  
+    Else 'append current symbol as operand to result string
+      current_symbol = Mid(expression, i, 1)
+      i = i + 1
+
+
+      'replace comma separator to mathematical deciamal separator
+      If current_symbol = "," Then current_symbol = OPS_DECIMAL_SEPARATOR
+      
+      'do i need a space before operand
+      If is_last_symbol_op And last_symbol <> OPS_SEPARATOR Then
+        _str = _str & OPS_SEPARATOR
+        last_symbol = OPS_SEPARATOR
+      Endif
+      
+      'prevent multi spaces
+      If current_symbol == OPS_SEPARATOR And last_symbol == OPS_SEPARATOR Then 
+        current_symbol = Null
+        last_symbol = OPS_SEPARATOR
+      Else
+        last_symbol = current_symbol
+      Endif
+      
+      'append current symbol
+      _str = _str & current_symbol
+      is_last_symbol_op = False
+    Endif
+    
+  Wend
+
+End
+
+Private Function IsOperator(expression As String, i As Integer) As Boolean
+   'detect of is operator on current position in expression
+   Dim current As Operator
+    For Each current In op
+      If current.is_matches(expression, i) Then
+        op_current = current
+        Return True
+      Endif
+    Next
+    op_current = Null
+    Return False
+End
+
+
+Public Function Calc(expression As String) As Boolean 
+  Dim i As Integer, expr_len As Integer
+  Dim operands As New String[], buffer As String
+  Dim operand_1 As Variant, operand_2 As Variant
+
+  _calc_result = 0
+  'parts = Split(expression, OPS_SEPARATOR)
+  expr_len = Len(expression)
+  i = 1
+  While i <= expr_len
+
+
+    'detect space symbol
+    If op_separator.is_matches(expression, i) Then
+      i = i + op_separator.len
+      If Len(buffer) > 0 Then
+        operands.Push(buffer)
+      Endif
+      buffer = ""
+      Continue
+    Else
+
+      
+      If IsOperator(expression, i) Then
+
+        'checking that the number of operators matches the number of operands
+        If operands.Length < 2 Then
+          _calc_error = "number of operators is not matches the number of operands"
+          Return False
+        Endif
+
+        operand_2 = operands.Pop()
+        operand_1 = operands.Pop()
+        
+        'checking that operands is numbers
+        If Not IsNumber(Replace(operand_1, ".", ",")) Or Not IsNumber(Replace(operand_2, ".", ",")) Then
+          _calc_error = "Operands not is numbers!"
+          Return False
+        Endif
+
+        Select op_current.symbol
+          Case OPS_PLUS
+            operands.Push(operand_1 + operand_2)
+          Case OPS_MINUS
+            operands.Push(operand_1 - operand_2)
+          Case OPS_MULT
+            operands.Push(operand_1 * operand_2)
+          Case OPS_DIV
+            If operand_2 = 0 Then
+              _calc_error = "Division by null!"
+              Return False
+            Endif
+            operands.Push(operand_1 / operand_2)
+        End Select
+        i = i + op_current.len
+      Else
+        buffer = buffer & Mid(expression, i, 1)
+        i = i + 1
+        Continue
+      Endif
+    Endif
+
+
+  Wend
+  _calc_result = operands.Pop()
+  Return True
+End
+

@@ -1,0 +1,10 @@
+' Gambas class file
+
+
+Public Sub Form_Open()
+  Me.Title = "About " & Application.Title
+  Label1.Text = "Application: " & Application.Name
+  Label2.Text = "Version: " & Application.Version
+  Label3.Text = "Author: Andrey Ryzhakov"
+  URLLabel1.Link = "jenkins.job@gmail.com"
+End

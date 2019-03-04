@@ -1,0 +1,21 @@
+# Gambas Form File 3.0
+
+{ Form Form
+  MoveScaled(0,0,62,19)
+  Drop = True
+  Resizable = False
+  Utility = True
+  SkipTaskbar = True
+  { Label1 Label
+    MoveScaled(1,1,59,4)
+  }
+  { Label2 Label
+    MoveScaled(1,5,59,4)
+  }
+  { Label3 Label
+    MoveScaled(1,9,59,4)
+  }
+  { URLLabel1 URLLabel
+    MoveScaled(1,13,59,4)
+  }
+}

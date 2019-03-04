@@ -1,0 +1,32 @@
+' Gambas class file
+
+Property Read symbol As String
+Property Read len As Integer
+
+Private _symbol As String
+Private _len As Integer
+
+Public intersect As New Collection
+
+
+Public Sub _new(symbol As String)
+  _symbol = symbol
+  _len = Len(_symbol)
+  Print "created new Operator '" & _symbol & "' (length: " & _len & ")"
+End
+
+
+Public Function is_matches(expression As String, current_position As Integer) As Boolean
+  'определяем, является ли данным оператором символ на текущей позиции в выражени
+  Return Mid(expression, current_position, _len) == _symbol
+End
+
+
+Sub symbol_Read() As String
+  Return _symbol
+End
+
+
+Sub len_Read() As Integer
+  Return _len
+End

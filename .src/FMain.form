@@ -1,0 +1,131 @@
+# Gambas Form File 3.0
+
+{ Form Form
+  MoveScaled(0,0,53,56)
+  Resizable = False
+  { menu_about Menu
+    Text = ("Help")
+    { menu_operators Menu
+      Text = ("Operators")
+    }
+    { about Menu
+      Text = ("About")
+    }
+  }
+  { tb_expr TextBox
+    MoveScaled(2,3,49,4)
+    Text = ("3*(2+(3+4*2)/2)*5")
+    Alignment = Align.Right
+  }
+  { b_clr Button
+    MoveScaled(44,24,6,6)
+    Text = ("C")
+  }
+  { b_1 Button
+    MoveScaled(2,24,6,6)
+    Text = ("1")
+  }
+  { b_2 Button
+    MoveScaled(9,24,6,6)
+    Text = ("2")
+  }
+  { b_3 Button
+    MoveScaled(16,24,6,6)
+    Text = ("3")
+  }
+  { b_4 Button
+    MoveScaled(2,31,6,6)
+    Text = ("4")
+  }
+  { b_5 Button
+    MoveScaled(9,31,6,6)
+    Text = ("5")
+  }
+  { b_6 Button
+    MoveScaled(16,31,6,6)
+    Text = ("6")
+  }
+  { b_7 Button
+    MoveScaled(2,38,6,6)
+    Text = ("7")
+  }
+  { b_8 Button
+    MoveScaled(9,38,6,6)
+    Text = ("8")
+  }
+  { b_9 Button
+    MoveScaled(16,38,6,6)
+    Text = ("9")
+  }
+  { b_0 Button
+    MoveScaled(9,45,13,6)
+    Text = ("0")
+  }
+  { b_dot Button
+    MoveScaled(2,45,6,6)
+    Text = (".")
+  }
+  { b_plus Button
+    MoveScaled(26,24,6,6)
+    Text = ("+")
+  }
+  { b_minus Button
+    MoveScaled(34,24,6,6)
+    Text = ("-")
+  }
+  { b_multiple Button
+    MoveScaled(26,31,6,6)
+    Text = ("*")
+  }
+  { b_division Button
+    MoveScaled(34,31,6,6)
+    Text = ("/")
+  }
+  { b_calc Button
+    MoveScaled(44,38,6,13)
+    Text = ("=")
+    Default = True
+  }
+  { b_backspace Button
+    MoveScaled(44,31,6,6)
+    Text = ("<-")
+  }
+  { tb_result TextBox
+    MoveScaled(2,19,49,4)
+    Alignment = Align.Right
+    ReadOnly = True
+  }
+  { Label1 Label
+    MoveScaled(2,8,47,4)
+    Text = ("postfix  reverse polish notation (RPN) expression")
+  }
+  { tb_RPN TextBox
+    MoveScaled(2,11,49,4)
+    Alignment = Align.Right
+    ReadOnly = True
+  }
+  { Label2 Label
+    MoveScaled(2,16,47,4)
+    Text = ("calculated RPN")
+  }
+  { b_br_open Button
+    MoveScaled(26,38,6,6)
+    Text = ("(")
+  }
+  { b_br_close Button
+    MoveScaled(34,38,6,6)
+    Text = (")")
+  }
+  { b_null1 Button
+    MoveScaled(26,45,6,6)
+    Enabled = False
+  }
+  { b_null2 Button
+    MoveScaled(34,45,6,6)
+    Enabled = False
+  }
+  { Label3 Label
+    MoveScaled(2,0,23,4)
+    Text = ("Infix notation expression")
+  }
+}

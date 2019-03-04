@@ -1,0 +1,163 @@
+' Gambas class file
+
+Private rpn As RPN
+Private tb_edited As TextBox
+
+Public Sub tb_expr_append(s As String)
+  Dim p As Integer
+  p = tb_expr.Pos
+  tb_expr.Text = Mid(tb_expr.Text, 1, tb_expr.Pos) & s & Mid(tb_expr.Text, tb_expr.Pos + 1, Len(tb_expr.Text) - tb_expr.Pos)
+  tb_expr.Pos = p + 1
+End
+
+
+Public Sub b_1_Click()
+  tb_expr_append(1)
+End
+
+Public Sub b_2_Click()
+  tb_expr_append(2)
+End
+
+Public Sub b_3_Click()
+  tb_expr_append(3)
+End
+
+Public Sub b_4_Click()
+  tb_expr_append(4)
+End
+
+Public Sub b_5_Click()
+  tb_expr_append(5)
+End
+
+Public Sub b_6_Click()
+  tb_expr_append(6)
+End
+
+Public Sub b_7_Click()
+  tb_expr_append(7)
+End
+
+Public Sub b_8_Click()
+  tb_expr_append(8)
+End
+
+Public Sub b_9_Click()
+  tb_expr_append(9)
+End
+
+
+Public Sub b_0_Click()
+  tb_expr_append(0)
+End
+
+Public Sub b_dot_Click()
+  tb_expr_append(".")
+End
+
+Public Sub b_plus_Click()
+  tb_expr_append(RPN.OPS_PLUS)
+End
+
+Public Sub b_minus_Click()
+  tb_expr_append(RPN.OPS_MINUS)
+End
+
+Public Sub b_multiple_Click()
+  tb_expr_append(RPN.OPS_MULT)
+End
+
+Public Sub b_division_Click()
+  tb_expr_append(RPN.OPS_DIV)
+End
+
+Public Sub b_backspace_Click()
+'  tb_edited.Text = Left(tb_edited.Text, Len(tb_edited.Text) - 1)
+  Dim p As Integer
+  p = tb_expr.Pos
+  If p < 1 Then Return
+  tb_expr.Text = Mid(tb_expr.Text, 1, p - 1) & Mid(tb_expr.Text, p + 1, Len(tb_expr.Text) - tb_expr.Pos)
+  tb_expr.Pos = p - 1
+End
+
+Public Sub b_clr_Click()
+   tb_expr.Text = ""
+   tb_RPN.Text = ""
+   tb_result.Text = ""
+End
+
+
+Public Sub b_calc_Click()
+  If rpn.Make(tb_expr.Text) Then
+    tb_RPN.Text = rpn.str
+    If rpn.Calc(rpn.str) Then
+      tb_result.Text = rpn.calc_result
+      make_ctrl_normal(tb_result)
+    Else
+      tb_result.Text = rpn.calc_error
+      make_ctrl_error(tb_result)
+    Endif
+    make_ctrl_normal(tb_RPN)
+  Else
+    tb_RPN.Text = rpn.str_error
+    tb_result.Text = "Calculation is skiped!"
+    make_ctrl_error(tb_RPN)
+    make_ctrl_alert(tb_result)
+  Endif
+End
+
+Sub make_ctrl_error(ctrl As Control)
+ctrl.Background = Color.Red
+ctrl.Foreground = Color.White
+End
+
+Sub make_ctrl_normal(ctrl As Control)
+ctrl.Background = Color.TextBackground
+ctrl.Foreground = Color.TextForeground
+End
+
+Sub make_ctrl_alert(ctrl As Control)
+ctrl.Background = Color.Yellow
+ctrl.Foreground = Color.DarkRed
+End
+
+Public Sub Form_Open()
+  rpn = New RPN
+  b_minus.Caption = RPN.OPS_MINUS
+  b_plus.Caption = RPN.OPS_PLUS
+  b_multiple.Caption = RPN.OPS_MULT
+  b_division.Caption = RPN.OPS_DIV
+  b_br_open.Caption = RPN.OPS_BR_OPEN
+  b_br_close.Caption = RPN.OPS_BR_CLOSE
+End
+
+Public Sub tb_expr_GotFocus()
+  tb_edited = tb_expr
+End
+
+Public Sub tb_RPN_GotFocus()
+  tb_edited = tb_RPN
+End
+
+Public Sub menu_operators_Click()
+  Dim op As Operator, s As String
+  For Each op In rpn.operators
+    s = s & " " & op.symbol
+  Next
+  s = Right(s, s.Len - 1)
+  Message("Supported symbols of operators: " & s)
+End
+
+Public Sub b_br_open_Click()
+ tb_expr_append("(")
+End
+
+Public Sub b_br_close_Click()
+  tb_expr_append(")")
+End
+
+Public Sub about_Click()
+  Dim frmabout As New About
+  frmabout.ShowModal()
+End
